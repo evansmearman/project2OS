@@ -399,7 +399,24 @@ void cmd_chmod(const std::vector<std::string>& args) {
     if (chmod(args[2].c_str(), mode) != 0)
         perror("chmod");
 }
-
+void cmd_up(const std::vector<std::string>& args) {
+    int levels = 1;
+    if (args.size() > 1) {
+        try { levels = std::stoi(args[1]); }
+        catch (...) { std::cerr << "up: invalid number\n"; return; }
+    }
+    for (int i = 0; i < levels; i++) {
+        if (chdir("..") != 0) {
+            perror("up");
+            return;
+        }
+    }
+    char buf[4096];
+    if (getcwd(buf, sizeof(buf))) {
+        setenv("PWD", buf, 1);
+        std::cout << buf << "\n";
+    }
+}
 void cmd_chown(const std::vector<std::string>& args) {
     if (args.size() < 3) {
         std::cerr << "chown: usage: chown <owner>[:group] <file>\n";
@@ -479,6 +496,7 @@ int main() {
         else if (cmd == "chown")   cmd_chown(args);
         else if (cmd == "environ") cmd_environ();
         else if (cmd == "help")    cmd_help();
+        else if (cmd == "up")      cmd_up(args);
         else std::cerr << cmd << ": command not found\n";
     }
 }
